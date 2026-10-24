@@ -102,24 +102,6 @@ static void _make_current_rd(const RendererRegistry::ContextInfo &p_context) {
 #endif // RD_ENABLED
 
 void register_renderer_types() {
-	RendererRegistry::RendererInfo dummy;
-	dummy.name = "dummy";
-	dummy.drivers.push_back("dummy");
-	dummy.context_mode = RendererRegistry::CONTEXT_NONE;
-	dummy.make_current = _make_current_dummy;
-	RendererRegistry::register_renderer(dummy);
-
-#ifdef GLES3_ENABLED
-	RendererRegistry::RendererInfo gl_compatibility;
-	gl_compatibility.name = "gl_compatibility";
-	gl_compatibility.drivers.push_back("opengl3");
-	gl_compatibility.drivers.push_back("opengl3_es");
-	gl_compatibility.drivers.push_back("opengl3_angle");
-	gl_compatibility.context_mode = RendererRegistry::CONTEXT_GL;
-	gl_compatibility.make_current = _make_current_gles3;
-	RendererRegistry::register_renderer(gl_compatibility);
-#endif // GLES3_ENABLED
-
 #ifdef RD_ENABLED
 	Vector<String> rd_drivers;
 #ifdef VULKAN_ENABLED
@@ -143,6 +125,24 @@ void register_renderer_types() {
 	mobile.name = "mobile";
 	RendererRegistry::register_renderer(mobile);
 #endif // RD_ENABLED
+
+#ifdef GLES3_ENABLED
+	RendererRegistry::RendererInfo gl_compatibility;
+	gl_compatibility.name = "gl_compatibility";
+	gl_compatibility.drivers.push_back("opengl3");
+	gl_compatibility.drivers.push_back("opengl3_es");
+	gl_compatibility.drivers.push_back("opengl3_angle");
+	gl_compatibility.context_mode = RendererRegistry::CONTEXT_GL;
+	gl_compatibility.make_current = _make_current_gles3;
+	RendererRegistry::register_renderer(gl_compatibility);
+#endif // GLES3_ENABLED
+
+	RendererRegistry::RendererInfo dummy;
+	dummy.name = "dummy";
+	dummy.drivers.push_back("dummy");
+	dummy.context_mode = RendererRegistry::CONTEXT_NONE;
+	dummy.make_current = _make_current_dummy;
+	RendererRegistry::register_renderer(dummy);
 }
 
 void unregister_renderer_types() {
