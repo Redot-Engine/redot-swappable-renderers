@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+from misc.utility.scons_hints import *
+
+Import("env")
+Import("env_modules")
+
+env_raw_vulkan_test = env_modules.Clone()
+
+# Same Vulkan headers, loader and platform define the Vulkan driver uses (see drivers/vulkan/SCsub).
+env_raw_vulkan_test.Prepend(CPPPATH=["#thirdparty/vulkan", "#thirdparty/vulkan/include"])
+if env["use_volk"]:
+    env_raw_vulkan_test.AppendUnique(CPPDEFINES=["USE_VOLK"])
+    env_raw_vulkan_test.Prepend(CPPPATH=["#thirdparty/volk"])
+env_raw_vulkan_test.AppendUnique(CPPDEFINES=["VK_USE_PLATFORM_XLIB_KHR"])
+
+env_raw_vulkan_test.add_source_files(env.modules_sources, "*.cpp")

@@ -82,6 +82,7 @@
 #include "servers/display/display_server.h"
 #include "servers/movie_writer/movie_writer.h"
 #include "servers/register_server_types.h"
+#include "servers/rendering/renderer_registry.h"
 #include "servers/rendering/rendering_server_default.h"
 #include "servers/text/text_server.h"
 #include "servers/text/text_server_dummy.h"
@@ -746,6 +747,8 @@ Error Main::test_setup() {
 
 	// From `Main::setup2()`.
 	register_early_core_singletons();
+	// Renderers must be registered before rendering method validation; modules may add more at the CORE level.
+	register_renderer_types();
 	initialize_modules(MODULE_INITIALIZATION_LEVEL_CORE);
 	register_core_extensions();
 
@@ -753,7 +756,6 @@ Error Main::test_setup() {
 
 	/** INITIALIZE SERVERS **/
 	register_server_types();
-	register_renderer_types();
 #ifndef XR_DISABLED
 	XRServer::set_xr_mode(XRServer::XRMODE_OFF); // Skip in tests.
 #endif // XR_DISABLED
@@ -868,7 +870,6 @@ void Main::test_cleanup() {
 
 	GDExtensionManager::get_singleton()->deinitialize_extensions(GDExtension::INITIALIZATION_LEVEL_SERVERS);
 	uninitialize_modules(MODULE_INITIALIZATION_LEVEL_SERVERS);
-	unregister_renderer_types();
 	unregister_server_types();
 
 	EngineDebugger::deinitialize();
@@ -900,6 +901,7 @@ void Main::test_cleanup() {
 	unregister_core_driver_types();
 	unregister_core_extensions();
 	uninitialize_modules(MODULE_INITIALIZATION_LEVEL_CORE);
+	unregister_renderer_types();
 
 	if (engine) {
 		memdelete(engine);
@@ -2099,6 +2101,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	register_early_core_singletons();
+	// Renderers must be registered before rendering method validation; modules may add more at the CORE level.
+	register_renderer_types();
 	initialize_modules(MODULE_INITIALIZATION_LEVEL_CORE);
 	register_core_extensions(); // core extensions must be registered after globals setup and before display
 
@@ -2446,15 +2450,11 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 #endif
 
 	if (!rendering_method.is_empty()) {
-		if (rendering_method != "forward_plus" &&
-				rendering_method != "mobile" &&
-				rendering_method != "gl_compatibility" &&
-				rendering_method != "dummy") {
+		if (!RendererRegistry::find(rendering_method)) {
 			OS::get_singleton()->print("Unknown rendering method '%s', aborting.\nValid options are ",
 					rendering_method.utf8().get_data());
 
-			Vector<String> rendering_method_hints = renderer_hints.split(",");
-			rendering_method_hints.push_back("dummy");
+			Vector<String> rendering_method_hints = RendererRegistry::get_renderer_names();
 			for (int i = 0; i < rendering_method_hints.size(); i++) {
 				if (i == rendering_method_hints.size() - 1) {
 					OS::get_singleton()->print(" and ");
@@ -2533,26 +2533,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		// Now validate whether the selected driver matches with the renderer.
 		bool valid_combination = false;
 		Vector<String> available_drivers;
-		if (rendering_method == "forward_plus" || rendering_method == "mobile") {
-#ifdef VULKAN_ENABLED
-			available_drivers.push_back("vulkan");
-#endif
-#ifdef D3D12_ENABLED
-			available_drivers.push_back("d3d12");
-#endif
-#ifdef METAL_ENABLED
-			available_drivers.push_back("metal");
-#endif
-		}
-#ifdef GLES3_ENABLED
-		if (rendering_method == "gl_compatibility") {
-			available_drivers.push_back("opengl3");
-			available_drivers.push_back("opengl3_angle");
-			available_drivers.push_back("opengl3_es");
-		}
-#endif
-		if (rendering_method == "dummy") {
-			available_drivers.push_back("dummy");
+		if (const RendererRegistry::RendererInfo *renderer_info = RendererRegistry::find(rendering_method)) {
+			available_drivers = renderer_info->drivers;
 		}
 		if (available_drivers.is_empty()) {
 			OS::get_singleton()->print("Unknown renderer name '%s', aborting.\n", rendering_method.utf8().get_data());
@@ -2955,6 +2937,7 @@ error:
 		memdelete(packed_data);
 	}
 
+	unregister_renderer_types();
 	unregister_core_driver_types();
 	unregister_core_extensions();
 
@@ -3184,7 +3167,6 @@ Error Main::setup2(bool p_show_boot_logo) {
 #endif // PHYSICS_2D_DISABLED
 
 	register_server_types();
-	register_renderer_types();
 	{
 		OS::get_singleton()->benchmark_begin_measure("Servers", "Modules and Extensions");
 
@@ -3314,7 +3296,6 @@ Error Main::setup2(bool p_show_boot_logo) {
 
 			GDExtensionManager::get_singleton()->deinitialize_extensions(GDExtension::INITIALIZATION_LEVEL_SERVERS);
 			uninitialize_modules(MODULE_INITIALIZATION_LEVEL_SERVERS);
-			unregister_renderer_types();
 			unregister_server_types();
 
 			if (input) {
@@ -5180,7 +5161,6 @@ void Main::cleanup(bool p_force) {
 
 	GDExtensionManager::get_singleton()->deinitialize_extensions(GDExtension::INITIALIZATION_LEVEL_SERVERS);
 	uninitialize_modules(MODULE_INITIALIZATION_LEVEL_SERVERS);
-	unregister_renderer_types();
 	unregister_server_types();
 
 	EngineDebugger::deinitialize();
@@ -5257,6 +5237,7 @@ void Main::cleanup(bool p_force) {
 	unregister_core_driver_types();
 	unregister_core_extensions();
 	uninitialize_modules(MODULE_INITIALIZATION_LEVEL_CORE);
+	unregister_renderer_types();
 
 	if (engine) {
 		memdelete(engine);

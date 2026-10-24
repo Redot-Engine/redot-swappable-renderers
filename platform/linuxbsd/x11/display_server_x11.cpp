@@ -7189,6 +7189,14 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 
 	// Initialize context and rendering device.
 
+	// A self-managed renderer creates its own graphics context from the native window handles,
+	// so no RenderingContextDriver or GL context is created for it here.
+	const RendererRegistry::RendererInfo *renderer_info = RendererRegistry::find(OS::get_singleton()->get_current_rendering_method());
+	const bool renderer_self_managed = renderer_info && renderer_info->context_mode == RendererRegistry::CONTEXT_SELF_MANAGED;
+	if (renderer_self_managed) {
+		driver_found = true;
+	}
+
 	if (rendering_driver == "dummy") {
 		if (RendererRegistry::make_current("dummy", { "dummy" }) != OK) {
 			r_error = ERR_UNAVAILABLE;
@@ -7199,7 +7207,7 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 
 #if defined(RD_ENABLED)
 #if defined(VULKAN_ENABLED)
-	if (rendering_driver == "vulkan") {
+	if (rendering_driver == "vulkan" && !renderer_self_managed) {
 		rendering_context = memnew(RenderingContextDriverVulkanX11);
 	}
 #endif // VULKAN_ENABLED
@@ -7239,7 +7247,7 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 #endif // RD_ENABLED
 
 #if defined(GLES3_ENABLED)
-	if (rendering_driver == "opengl3" || rendering_driver == "opengl3_es") {
+	if ((rendering_driver == "opengl3" || rendering_driver == "opengl3_es") && !renderer_self_managed) {
 		if (getenv("DRI_PRIME") == nullptr) {
 			int use_prime = -1;
 
@@ -7281,7 +7289,7 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 			}
 		}
 	}
-	if (rendering_driver == "opengl3") {
+	if (rendering_driver == "opengl3" && !renderer_self_managed) {
 		gl_manager = memnew(GLManager_X11(p_resolution, GLManager_X11::GLES_3_0_COMPATIBLE));
 		if (gl_manager->initialize(x11_display) != OK || gl_manager->open_display(x11_display) != OK) {
 			memdelete(gl_manager);
@@ -7314,7 +7322,7 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 		}
 	}
 
-	if (rendering_driver == "opengl3_es") {
+	if (rendering_driver == "opengl3_es" && !renderer_self_managed) {
 		gl_manager_egl = memnew(GLManagerEGL_X11);
 		if (gl_manager_egl->initialize() != OK || gl_manager_egl->open_display(x11_display) != OK) {
 			memdelete(gl_manager_egl);
@@ -7384,6 +7392,14 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 		}
 	}
 #endif // RD_ENABLED
+
+	if (renderer_self_managed) {
+		// The main window now exists, so the renderer can query its native handles when it initializes.
+		if (RendererRegistry::make_current({ rendering_driver }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
+	}
 
 	{
 		//set all event master mask
