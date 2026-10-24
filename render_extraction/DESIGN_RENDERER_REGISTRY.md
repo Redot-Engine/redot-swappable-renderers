@@ -56,19 +56,42 @@ class RendererRegistry {
 - String checks in scene/editor become feature queries
   (e.g. `RS::get_singleton()->has_feature(...)`); done gradually, later phase.
 
-### Where does a custom renderer get its GPU access?
+### Where does a renderer get its GPU access? (`ContextMode`)
 
-Option **RD-based** (recommended first): the custom renderer implements
-`RendererCompositor` on top of `RenderingDevice`, which already abstracts
-Vulkan / D3D12 / Metal. The platform context code needs no change.
+```cpp
+enum ContextMode {
+    CONTEXT_RD,           // DisplayServer creates RenderingContextDriver + RenderingDevice (Forward+, Mobile)
+    CONTEXT_GL,           // DisplayServer creates the GL/EGL context (Compatibility)
+    CONTEXT_NONE,         // no GPU (Dummy)
+    CONTEXT_SELF_MANAGED, // renderer owns its graphics API entirely (raw Vulkan, etc.)
+};
+```
 
-Option **raw API**: the renderer receives the native context (VkInstance/surface,
-GL context) and manages it itself. More freedom, much more platform work.
-Can be added later on top of the registry.
+**Decision (user, 2026-10-24): the user's own renderer will be `CONTEXT_SELF_MANAGED`
+raw Vulkan.** Reference: `/mnt/disk1/Game_Engine_Design/Unironic_engine/` (Vulkan
+tutorial structure: Window -> Device -> SwapChain -> Pipeline; GLFW window).
+
+For self-managed renderers the DisplayServer:
+- creates plain windows (no RD/GL context),
+- passes a `RendererWindowHost` to the renderer:
+  native handles (via existing `window_get_native_handle(DISPLAY_HANDLE/WINDOW_HANDLE)`),
+  window size, vsync mode, and window created/resized/destroyed callbacks.
+
+The renderer then does what the tutorial's `UnironicDevice` / `UnironicSwapChain` do
+(VkInstance, VkSurfaceKHR from the native handles, device, swapchain), replacing
+GLFW's `glfwCreateWindowSurface` with `vkCreateXlibSurfaceKHR` /
+`vkCreateWaylandSurfaceKHR` / `vkCreateWin32SurfaceKHR`.
+
+Caveats: features built on `RenderingDevice` (RD-based lightmapper, betsy GPU
+compression, `RenderingDevice` scripting API, OpenXR Vulkan path, shader baker)
+are unavailable or must be stubbed under a self-managed renderer.
 
 ## Phases
 
 1. Registry + built-ins register; DisplayServers call the registry. Behaviour identical.
-2. `main.cpp` lists come from the registry.
-3. Feature flags replace method-name string compares in scene/editor.
-4. Move the built-in renderers into their own library target behind the registry.
+2. `CONTEXT_SELF_MANAGED` + `RendererWindowHost` on Linux (X11, Wayland), proven by a
+   tiny raw-Vulkan test renderer that just clears the screen. This is the hook for the
+   user's renderer.
+3. `main.cpp` lists come from the registry.
+4. Feature flags replace method-name string compares in scene/editor.
+5. Move the built-in renderers into their own library target behind the registry.
