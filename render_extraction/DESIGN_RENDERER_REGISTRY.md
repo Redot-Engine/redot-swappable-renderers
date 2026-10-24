@@ -86,6 +86,13 @@ Caveats: features built on `RenderingDevice` (RD-based lightmapper, betsy GPU
 compression, `RenderingDevice` scripting API, OpenXR Vulkan path, shader baker)
 are unavailable or must be stubbed under a self-managed renderer.
 
+## Registration timing (learned in phase 2)
+
+`main.cpp` validates `--rendering-method` in `Main::setup()`, before the
+SERVERS module level. So `register_renderer_types()` runs right before
+`initialize_modules(MODULE_INITIALIZATION_LEVEL_CORE)`, and module renderers
+register at the CORE level.
+
 ## Phases
 
 1. Registry + built-ins register; DisplayServers call the registry. Behaviour identical.

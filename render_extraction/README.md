@@ -26,6 +26,10 @@ swappable renderer interface.
 - [x] Dependency map - pass 1 (DEPENDENCY_MAP.md)
 - [x] Regression harness (`regression/`), pixel-identical vs 26.3
 - [x] Registry phase 1: `RendererRegistry`, all platforms + headless converted (Linux verified; other platforms not compile-tested)
-- [ ] Registry phase 2: `CONTEXT_SELF_MANAGED` + raw Vulkan test renderer
+- [x] Registry phase 2: `CONTEXT_SELF_MANAGED` on X11 + `modules/raw_vulkan_test` (verified: renders, resizes). Guide: `WRITING_A_RENDERER.md`
+- [x] main.cpp validates rendering methods via the registry (registration moved before CORE module init)
+- [x] Windows (MinGW) compile-tested
+- [ ] Self-managed support on Wayland / Windows
+- [ ] Run raw_vulkan_test under the Vulkan validation layer (needs `vulkan-validation-layers`)
 - [ ] Remove old renderer includes from non-Linux platforms (needs cross-compile)
 - [ ] Baseline
