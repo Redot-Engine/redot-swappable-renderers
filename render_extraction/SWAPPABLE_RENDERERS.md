@@ -17,7 +17,7 @@ What was done, on branch `render-extraction` (21 commits, 79 engine files, +1,50
 
 For engineers, the rest of this doc explains how the inherited Godot system works, why pulling the renderer out was so hard, and how each change was verified. For game developers, the step-by-step guide shows how to plug in your own renderer.
 
-We found no evidence of deliberately obstructive code. We found a lot of accumulated coupling and hidden dependencies, which is what made this feel impossible.
+Most of the difficulty came from accumulated coupling and hidden dependencies built up over years of feature work, not from any single design decision.
 
 ## How the inherited Godot rendering system works
 
@@ -65,15 +65,15 @@ What we found, measured on the 26.3 tree:
 | Hidden transitive includes | Found 5 at build time: Wayland got `RenderingServer` only via the dummy renderer header; `register_server_types.cpp` got `BlitToScreen` only via RD headers; OpenXR GL got GL declarations only via GLES3 headers on Windows; and others | Removing one include breaks a file that never mentions the removed type. This is the main reason the work felt impossible. |
 | Misplaced build pieces | `spirv-reflect` built from the RD *renderer* folder but used only by `RenderingDevice` | Only shows up as a link error once the renderer is a separate library. |
 
-### Was any of it deliberate?
+### What caused the coupling
 
-No evidence supports that. Every finding was traced with `git blame` and commit history, and each one has an ordinary explanation:
+Every finding was traced with `git blame` and commit history, and each one has an ordinary explanation:
 
 - Includes left behind by large refactors: GL 3.3 rewrite (2021), dummy renderer split (2022), physics interpolation (2024).
 - Copy-paste divergence between platforms: Android and iOS leak the `RenderingDevice` on init failure; macOS ignores init failure entirely. Both date to 2020.
 - Shortcuts taken when features were added: XR reading RD texture storage directly, with an in-code `@todo` acknowledging it.
 
-The full evidence log (15 entries, each with file, line, cost and history) is in `render_extraction/EVIDENCE.md`. Six of the defects are now standalone bug-fix PRs.
+The full findings log (15 entries, each with file, line, cost, history and likely cause) is in `render_extraction/FINDINGS.md`. Six of the defects are now standalone bug-fix PRs.
 
 ## The new architecture
 
@@ -516,7 +516,7 @@ All work is on branch `render-extraction` in `/mnt/disk2/Redot/render-extraction
 | `render_extraction/README.md` | Working notes and status |
 | `render_extraction/DEPENDENCY_MAP.md` | The initial coupling map |
 | `render_extraction/DESIGN_RENDERER_REGISTRY.md` | Design notes |
-| `render_extraction/EVIDENCE.md` | 15 findings with file, line, cost and history |
+| `render_extraction/FINDINGS.md` | 15 findings with file, line, cost and history |
 | `render_extraction/WRITING_A_RENDERER.md` | Short in-repo version of the guide above |
 | `render_extraction/PR_QUEUE.md` | The bug-fix PR batch with draft descriptions and test steps |
 | `render_extraction/regression/` | Pixel test (`rtest.sh`), feature probe (`flagtest.sh`, `flagproj/`) |

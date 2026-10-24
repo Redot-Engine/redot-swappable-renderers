@@ -18,7 +18,7 @@ swappable renderer interface.
 2. **Baseline** - clean build, tests, reference screenshots for regression checks.
 3. **Incremental extraction** - one dependency at a time; every commit builds.
 4. **Bug fixes** - separate branches/PRs to Redot-Engine/redot-engine.
-5. **Evidence log** - see `EVIDENCE.md`.
+5. **Findings log** - see `FINDINGS.md`.
 
 ## Status
 

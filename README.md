@@ -1,5 +1,17 @@
 # Redot Engine
 
+> [!NOTE]
+> **redot-swappable-renderers**: this is Redot with the render engine extracted behind a
+> renderer registry, so renderers can be swapped or replaced (including raw-API renderers
+> that own their own Vulkan context). Start with
+> [render_extraction/SWAPPABLE_RENDERERS.md](render_extraction/SWAPPABLE_RENDERERS.md):
+> architecture, process, verification, and a step-by-step guide for plugging in your own renderer.
+>
+> Status: verified on Linux; Windows compiles but is untested at runtime; macOS, iOS, Android
+> and web have not been compiled yet. Nothing here is merged into Redot; changes go through
+> review and pull requests to the main repository first.
+
+
 <p align="center">
   <a href="https://redotengine.org/">
     <img src="logo_outlined.png" width="400" alt="Redot Engine logo">

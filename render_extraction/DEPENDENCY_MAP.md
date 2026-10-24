@@ -94,5 +94,5 @@ Grouped by why they reach in:
 
 ## Bug / cleanup candidates (to verify after build)
 
-- ~~Dead includes: renderer_scene_cull.cpp:48, rasterizer_dummy.h:43, rasterizer_scene_gles3.h:50.~~ Removed (EVIDENCE #1-3).
+- ~~Dead includes: renderer_scene_cull.cpp:48, rasterizer_dummy.h:43, rasterizer_scene_gles3.h:50.~~ Removed (FINDINGS #1-3).
 - `core/error/error_macros.cpp:50` includes `scene/main/node.h` (core -> scene). Not renderer, but blocks a clean `core` later.
