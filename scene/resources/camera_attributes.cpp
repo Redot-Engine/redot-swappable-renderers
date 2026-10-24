@@ -39,6 +39,7 @@
 #include "camera_attributes.h"
 
 #include "core/config/project_settings.h"
+#include "servers/rendering/renderer_registry.h"
 #include "servers/rendering/rendering_server.h"
 
 void CameraAttributes::set_exposure_multiplier(float p_multiplier) {
@@ -409,7 +410,7 @@ void CameraAttributesPhysical::_update_frustum() {
 	bool use_far = (depth_far < frustum_far) && (depth_far > 0.0);
 	bool use_near = depth_near > frustum_near;
 #ifdef DEBUG_ENABLED
-	if (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
+	if (!RendererRegistry::has_feature(RendererRegistry::FEATURE_DOF_BLUR)) {
 		// Force disable DoF in editor builds to suppress warnings.
 		use_far = false;
 		use_near = false;

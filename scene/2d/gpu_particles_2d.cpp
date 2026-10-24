@@ -45,6 +45,7 @@
 #include "scene/resources/curve_texture.h"
 #include "scene/resources/gradient_texture.h"
 #include "scene/resources/particle_process_material.h"
+#include "servers/rendering/renderer_registry.h"
 
 void GPUParticles2D::set_emitting(bool p_emitting) {
 	// Do not return even if `p_emitting == emitting` because `emitting` is just an approximation.
@@ -396,11 +397,11 @@ PackedStringArray GPUParticles2D::get_configuration_warnings() const {
 		}
 	}
 
-	if (trail_enabled && (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility" || OS::get_singleton()->get_current_rendering_method() == "dummy")) {
+	if (trail_enabled && !RendererRegistry::has_feature(RendererRegistry::FEATURE_PARTICLE_TRAILS)) {
 		warnings.push_back(RTR("Particle trails are only available when using the Forward+ or Mobile renderers."));
 	}
 
-	if (sub_emitter != NodePath() && (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility" || OS::get_singleton()->get_current_rendering_method() == "dummy")) {
+	if (sub_emitter != NodePath() && !RendererRegistry::has_feature(RendererRegistry::FEATURE_PARTICLE_SUB_EMITTERS)) {
 		warnings.push_back(RTR("Particle sub-emitters are not available when using the Compatibility renderer."));
 	}
 

@@ -111,6 +111,7 @@
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/surface_tool.h"
 #include "servers/movie_writer/movie_writer.h"
+#include "servers/rendering/renderer_registry.h"
 
 constexpr real_t DISTANCE_DEFAULT = 4;
 
@@ -3076,11 +3077,11 @@ void Node3DEditorViewport::_notification(int p_what) {
 					case SupportedRenderingMethods::ALL:
 						break;
 					case SupportedRenderingMethods::FORWARD_PLUS_MOBILE:
-						disabled = OS::get_singleton()->get_current_rendering_method() == "gl_compatibility";
+						disabled = !RendererRegistry::has_feature(RendererRegistry::FEATURE_DEBUG_DRAW_MODES);
 						disabled_tooltip = TTR("This debug draw mode is not supported when using the Compatibility rendering method.");
 						break;
 					case SupportedRenderingMethods::FORWARD_PLUS:
-						disabled = OS::get_singleton()->get_current_rendering_method() == "gl_compatibility" || OS::get_singleton()->get_current_rendering_method() == "mobile";
+						disabled = !RendererRegistry::has_feature(RendererRegistry::FEATURE_DEBUG_DRAW_MODES_CLUSTERED);
 						disabled_tooltip = TTR("This debug draw mode is not supported when using the Mobile or Compatibility rendering methods.");
 						break;
 				}
@@ -9176,7 +9177,7 @@ void Node3DEditor::_load_default_preview_settings() {
 	environ_hz_color->set_pick_color(Color(0.129, 0.129, 0.129));
 	environ_ground_color->set_pick_color(Color(0.129, 0.129, 0.129));
 	environ_energy->set_value_no_signal(1.0);
-	if (OS::get_singleton()->get_current_rendering_method() != "gl_compatibility" && OS::get_singleton()->get_current_rendering_method() != "dummy") {
+	if (RendererRegistry::has_feature(RendererRegistry::FEATURE_GLOW_FULL) && RendererRegistry::get_current_context_mode() != RendererRegistry::CONTEXT_NONE) {
 		environ_glow_button->set_pressed_no_signal(true);
 	}
 	environ_tonemap_button->set_pressed_no_signal(true);

@@ -83,6 +83,18 @@ Vector<String> RendererRegistry::get_renderers_for_driver(const String &p_driver
 	return names;
 }
 
+bool RendererRegistry::has_feature(Feature p_feature) {
+	// Looked up by name rather than `current`, so this also works before a renderer is made current
+	// (e.g. while scenes are loaded by tools that never create a renderer).
+	const RendererInfo *info = find(OS::get_singleton()->get_current_rendering_method());
+	return info && (info->features & p_feature);
+}
+
+RendererRegistry::ContextMode RendererRegistry::get_current_context_mode() {
+	const RendererInfo *info = find(OS::get_singleton()->get_current_rendering_method());
+	return info ? info->context_mode : CONTEXT_NONE;
+}
+
 Error RendererRegistry::make_current(const ContextInfo &p_context) {
 	if (p_context.driver == "dummy") {
 		return make_current("dummy", p_context);

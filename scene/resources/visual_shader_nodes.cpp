@@ -37,6 +37,8 @@
  */
 
 #include "visual_shader_nodes.h"
+
+#include "servers/rendering/renderer_registry.h"
 #include "visual_shader_nodes.compat.inc"
 
 ////////////// Vector Base
@@ -3848,7 +3850,7 @@ String VisualShaderNodeDerivativeFunc::generate_code(Shader::Mode p_mode, Visual
 	};
 
 	String code;
-	if (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
+	if (!RendererRegistry::has_feature(RendererRegistry::FEATURE_SHADER_DESKTOP_BUILTINS)) {
 		code += "	" + p_output_vars[0] + " = " + String(functions[func]).replace_first("$", "").replace_first("$", p_input_vars[0]) + ";\n";
 		return code;
 	}
@@ -3858,7 +3860,7 @@ String VisualShaderNodeDerivativeFunc::generate_code(Shader::Mode p_mode, Visual
 }
 
 String VisualShaderNodeDerivativeFunc::get_warning(Shader::Mode p_mode, VisualShader::Type p_type) const {
-	if (precision != PRECISION_NONE && OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
+	if (precision != PRECISION_NONE && !RendererRegistry::has_feature(RendererRegistry::FEATURE_SHADER_DESKTOP_BUILTINS)) {
 		String precision_str;
 		switch (precision) {
 			case PRECISION_COARSE: {
@@ -7719,7 +7721,7 @@ String VisualShaderNodeMultiplyAdd::get_output_port_name(int p_port) const {
 }
 
 String VisualShaderNodeMultiplyAdd::generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview) const {
-	if (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
+	if (!RendererRegistry::has_feature(RendererRegistry::FEATURE_SHADER_DESKTOP_BUILTINS)) {
 		return "	" + p_output_vars[0] + " = (" + p_input_vars[0] + " * " + p_input_vars[1] + ") + " + p_input_vars[2] + ";\n";
 	}
 	return "	" + p_output_vars[0] + " = fma(" + p_input_vars[0] + ", " + p_input_vars[1] + ", " + p_input_vars[2] + ");\n";

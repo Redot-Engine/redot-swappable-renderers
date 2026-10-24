@@ -42,6 +42,7 @@
 #include "mesh_instance_3d.h"
 #include "multimesh_instance_3d.h"
 #include "scene/resources/camera_attributes.h"
+#include "servers/rendering/renderer_registry.h"
 #include "voxelizer.h"
 
 void VoxelGIData::_set_data(const Dictionary &p_data) {
@@ -548,10 +549,10 @@ AABB VoxelGI::get_aabb() const {
 PackedStringArray VoxelGI::get_configuration_warnings() const {
 	PackedStringArray warnings = VisualInstance3D::get_configuration_warnings();
 
-	if (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
-		warnings.push_back(RTR("VoxelGI nodes are not supported when using the Compatibility renderer yet. Support will be added in a future release."));
-	} else if (OS::get_singleton()->get_current_rendering_method() == "dummy") {
+	if (RendererRegistry::get_current_context_mode() == RendererRegistry::CONTEXT_NONE) {
 		warnings.push_back(RTR("VoxelGI nodes are not supported when using the Dummy renderer."));
+	} else if (!RendererRegistry::has_feature(RendererRegistry::FEATURE_VOXEL_GI)) {
+		warnings.push_back(RTR("VoxelGI nodes are not supported when using the Compatibility renderer yet. Support will be added in a future release."));
 	} else if (probe_data.is_null()) {
 		warnings.push_back(RTR("No VoxelGI data set, so this node is disabled. Bake static objects to enable GI."));
 	}

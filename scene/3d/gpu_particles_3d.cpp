@@ -43,6 +43,7 @@
 #include "scene/resources/curve_texture.h"
 #include "scene/resources/gradient_texture.h"
 #include "scene/resources/particle_process_material.h"
+#include "servers/rendering/renderer_registry.h"
 
 AABB GPUParticles3D::get_aabb() const {
 	return AABB();
@@ -429,12 +430,12 @@ PackedStringArray GPUParticles3D::get_configuration_warnings() const {
 		if ((dp_count || skin.is_valid()) && (missing_trails || no_materials)) {
 			warnings.push_back(RTR("Trails enabled, but one or more mesh materials are either missing or not set for trails rendering."));
 		}
-		if (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility" || OS::get_singleton()->get_current_rendering_method() == "dummy") {
+		if (!RendererRegistry::has_feature(RendererRegistry::FEATURE_PARTICLE_TRAILS)) {
 			warnings.push_back(RTR("Particle trails are only available when using the Forward+ or Mobile renderers."));
 		}
 	}
 
-	if (sub_emitter != NodePath() && (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility" || OS::get_singleton()->get_current_rendering_method() == "dummy")) {
+	if (sub_emitter != NodePath() && !RendererRegistry::has_feature(RendererRegistry::FEATURE_PARTICLE_SUB_EMITTERS)) {
 		warnings.push_back(RTR("Particle sub-emitters are only available when using the Forward+ or Mobile renderers."));
 	}
 

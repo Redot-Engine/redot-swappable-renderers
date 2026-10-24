@@ -119,10 +119,24 @@ void register_renderer_types() {
 	forward_plus.drivers = rd_drivers;
 	forward_plus.context_mode = RendererRegistry::CONTEXT_RD;
 	forward_plus.make_current = _make_current_rd;
+	forward_plus.features = RendererRegistry::FEATURE_GEOMETRY_TRANSPARENCY | RendererRegistry::FEATURE_VISIBILITY_RANGE_FADE |
+			RendererRegistry::FEATURE_LIGHT_PROJECTORS | RendererRegistry::FEATURE_PARTICLE_TRAILS | RendererRegistry::FEATURE_PARTICLE_SUB_EMITTERS |
+			RendererRegistry::FEATURE_VOLUMETRIC_FOG | RendererRegistry::FEATURE_VOXEL_GI | RendererRegistry::FEATURE_DECALS |
+			RendererRegistry::FEATURE_DOF_BLUR | RendererRegistry::FEATURE_AUTO_EXPOSURE |
+			RendererRegistry::FEATURE_SSR | RendererRegistry::FEATURE_SSAO | RendererRegistry::FEATURE_SSIL | RendererRegistry::FEATURE_SDFGI |
+			RendererRegistry::FEATURE_GLOW_FULL | RendererRegistry::FEATURE_DEBUG_DRAW_MODES | RendererRegistry::FEATURE_DEBUG_DRAW_MODES_CLUSTERED |
+			RendererRegistry::FEATURE_SCALING_3D_ADVANCED | RendererRegistry::FEATURE_SCALING_3D_FSR |
+			RendererRegistry::FEATURE_SCREEN_SPACE_AA | RendererRegistry::FEATURE_TAA |
+			RendererRegistry::FEATURE_NORMAL_ROUGHNESS_BUFFER | RendererRegistry::FEATURE_SHADER_DESKTOP_BUILTINS;
 	RendererRegistry::register_renderer(forward_plus);
 
 	RendererRegistry::RendererInfo mobile = forward_plus;
 	mobile.name = "mobile";
+	mobile.features = RendererRegistry::FEATURE_LIGHT_PROJECTORS | RendererRegistry::FEATURE_PARTICLE_TRAILS | RendererRegistry::FEATURE_PARTICLE_SUB_EMITTERS |
+			RendererRegistry::FEATURE_VOXEL_GI | RendererRegistry::FEATURE_DECALS | RendererRegistry::FEATURE_DOF_BLUR |
+			RendererRegistry::FEATURE_GLOW_FULL | RendererRegistry::FEATURE_DEBUG_DRAW_MODES |
+			RendererRegistry::FEATURE_SCALING_3D_ADVANCED | RendererRegistry::FEATURE_SCREEN_SPACE_AA |
+			RendererRegistry::FEATURE_SHADER_DESKTOP_BUILTINS;
 	RendererRegistry::register_renderer(mobile);
 #endif // RD_ENABLED
 
@@ -134,6 +148,7 @@ void register_renderer_types() {
 	gl_compatibility.drivers.push_back("opengl3_angle");
 	gl_compatibility.context_mode = RendererRegistry::CONTEXT_GL;
 	gl_compatibility.make_current = _make_current_gles3;
+	gl_compatibility.features = 0; // GLSL ES 3.0 baseline; see RendererRegistry::Feature.
 	RendererRegistry::register_renderer(gl_compatibility);
 #endif // GLES3_ENABLED
 
@@ -142,6 +157,12 @@ void register_renderer_types() {
 	dummy.drivers.push_back("dummy");
 	dummy.context_mode = RendererRegistry::CONTEXT_NONE;
 	dummy.make_current = _make_current_dummy;
+	// The dummy renderer draws nothing. These are the features engine code has historically
+	// treated it as having, kept so headless runs report the same warnings and errors as before.
+	dummy.features = RendererRegistry::FEATURE_DOF_BLUR | RendererRegistry::FEATURE_AUTO_EXPOSURE |
+			RendererRegistry::FEATURE_GLOW_FULL | RendererRegistry::FEATURE_DEBUG_DRAW_MODES | RendererRegistry::FEATURE_DEBUG_DRAW_MODES_CLUSTERED |
+			RendererRegistry::FEATURE_SCALING_3D_ADVANCED | RendererRegistry::FEATURE_SCREEN_SPACE_AA |
+			RendererRegistry::FEATURE_SHADER_DESKTOP_BUILTINS;
 	RendererRegistry::register_renderer(dummy);
 }
 

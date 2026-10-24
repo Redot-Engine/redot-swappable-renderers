@@ -63,6 +63,41 @@ public:
 		CONTEXT_SELF_MANAGED,
 	};
 
+	/// Optional features a renderer may support. Engine code asks for features
+	/// instead of comparing rendering method names.
+	enum Feature : uint64_t {
+		FEATURE_GEOMETRY_TRANSPARENCY = 1ull << 0,
+		FEATURE_VISIBILITY_RANGE_FADE = 1ull << 1,
+		FEATURE_LIGHT_PROJECTORS = 1ull << 2,
+		FEATURE_PARTICLE_TRAILS = 1ull << 3,
+		FEATURE_PARTICLE_SUB_EMITTERS = 1ull << 4,
+		FEATURE_VOLUMETRIC_FOG = 1ull << 5,
+		FEATURE_VOXEL_GI = 1ull << 6,
+		FEATURE_DECALS = 1ull << 7,
+		FEATURE_DOF_BLUR = 1ull << 8,
+		FEATURE_AUTO_EXPOSURE = 1ull << 9,
+		FEATURE_SSR = 1ull << 10,
+		FEATURE_SSAO = 1ull << 11,
+		FEATURE_SSIL = 1ull << 12,
+		FEATURE_SDFGI = 1ull << 13,
+		/// Glow levels, blend modes, strength and mix (otherwise only basic glow).
+		FEATURE_GLOW_FULL = 1ull << 14,
+		/// Editor debug draw modes that need the RenderingDevice scene buffers.
+		FEATURE_DEBUG_DRAW_MODES = 1ull << 15,
+		/// Editor debug draw modes that need the clustered (Forward+) scene buffers.
+		FEATURE_DEBUG_DRAW_MODES_CLUSTERED = 1ull << 16,
+		/// 3D scaling modes other than bilinear, including MetalFX Spatial.
+		FEATURE_SCALING_3D_ADVANCED = 1ull << 17,
+		/// FSR 1, FSR 2 and MetalFX Temporal 3D scaling.
+		FEATURE_SCALING_3D_FSR = 1ull << 18,
+		FEATURE_SCREEN_SPACE_AA = 1ull << 19,
+		FEATURE_TAA = 1ull << 20,
+		/// `hint_normal_roughness_texture` in shaders.
+		FEATURE_NORMAL_ROUGHNESS_BUFFER = 1ull << 21,
+		/// Shader built-ins missing from GLSL ES 3.0, such as `fma()` and coarse/fine derivatives.
+		FEATURE_SHADER_DESKTOP_BUILTINS = 1ull << 22,
+	};
+
 	/// Information about the context the DisplayServer created, passed to the renderer.
 	struct ContextInfo {
 		String driver;
@@ -76,6 +111,8 @@ public:
 		/// Rendering drivers this renderer can run on.
 		Vector<String> drivers;
 		ContextMode context_mode = CONTEXT_RD;
+		/// Bitmask of Feature values.
+		uint64_t features = 0;
 		/// Prepares the renderer and sets `RendererCompositor::_create_func`.
 		void (*make_current)(const ContextInfo &p_context) = nullptr;
 	};
@@ -92,6 +129,12 @@ public:
 	static const RendererInfo *get_current() { return current; }
 	static Vector<String> get_renderer_names();
 	static Vector<String> get_renderers_for_driver(const String &p_driver);
+
+	/// Whether the renderer for the current rendering method supports a feature.
+	/// Unknown rendering methods support nothing.
+	static bool has_feature(Feature p_feature);
+	/// Context mode of the renderer for the current rendering method (CONTEXT_NONE if unknown).
+	static ContextMode get_current_context_mode();
 
 	/// Makes the renderer for the current rendering method current.
 	/// The "dummy" driver always selects the "dummy" renderer.

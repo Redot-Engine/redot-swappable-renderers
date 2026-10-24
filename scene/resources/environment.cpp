@@ -40,6 +40,7 @@
 
 #include "core/config/project_settings.h"
 #include "scene/resources/gradient_texture.h"
+#include "servers/rendering/renderer_registry.h"
 #include "servers/rendering/rendering_server.h"
 
 RID Environment::get_rid() const {
@@ -1127,11 +1128,11 @@ void Environment::_validate_property(PropertyInfo &p_property) const {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if (p_property.name == "glow_intensity" && glow_blend_mode == GLOW_BLEND_MODE_MIX && OS::get_singleton()->get_current_rendering_method() != "gl_compatibility") {
+	if (p_property.name == "glow_intensity" && glow_blend_mode == GLOW_BLEND_MODE_MIX && RendererRegistry::has_feature(RendererRegistry::FEATURE_GLOW_FULL)) {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
+	if (!RendererRegistry::has_feature(RendererRegistry::FEATURE_GLOW_FULL)) {
 		// Hide glow properties we do not support in GL Compatibility.
 		if (p_property.name.begins_with("glow_levels") || p_property.name == "glow_normalized" || p_property.name == "glow_strength" || p_property.name == "glow_mix" || p_property.name == "glow_blend_mode" || p_property.name == "glow_map_strength" || p_property.name == "glow_map") {
 			p_property.usage = PROPERTY_USAGE_NO_EDITOR;
