@@ -2639,6 +2639,23 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		goto error;
 	}
 
+	// The project may name a rendering method this build doesn't include (e.g. a build without the
+	// built-in renderers, or a typo in project.godot). Fall back to a renderer for the driver,
+	// like the RD renderer used to default to Forward+. The dummy driver always uses the dummy renderer.
+	if (rendering_driver != "dummy" && !RendererRegistry::find(rendering_method)) {
+		const Vector<String> fallback_methods = RendererRegistry::get_renderers_for_driver(rendering_driver);
+		if (fallback_methods.is_empty()) {
+			ERR_PRINT(vformat(
+					"Rendering method '%s' is not available in this engine build, and no renderer supports the '%s' rendering driver.\n"
+					"Edit your project file (project.godot) and change rendering/renderer/rendering_method, or use --rendering-method.\n"
+					"Valid options are %s.",
+					rendering_method, rendering_driver, String(", ").join(RendererRegistry::get_renderer_names())));
+			goto error;
+		}
+		ERR_PRINT(vformat("Rendering method '%s' is not available in this engine build. Using '%s' instead.", rendering_method, fallback_methods[0]));
+		rendering_method = fallback_methods[0];
+	}
+
 	OS::get_singleton()->set_current_rendering_driver_name(rendering_driver);
 	OS::get_singleton()->set_current_rendering_method(rendering_method);
 
