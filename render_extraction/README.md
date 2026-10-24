@@ -23,5 +23,5 @@ swappable renderer interface.
 ## Status
 
 - [x] Workspace created from `26.3` (`master` @ 860c27364f), branch `render-extraction`.
-- [ ] Dependency map
+- [~] Dependency map - pass 1 done (DEPENDENCY_MAP.md), pass 2 pending build
 - [ ] Baseline
