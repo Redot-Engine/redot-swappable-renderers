@@ -23,5 +23,9 @@ swappable renderer interface.
 ## Status
 
 - [x] Workspace created from `26.3` (`master` @ 860c27364f), branch `render-extraction`.
-- [~] Dependency map - pass 1 done (DEPENDENCY_MAP.md), pass 2 pending build
+- [x] Dependency map - pass 1 (DEPENDENCY_MAP.md)
+- [x] Regression harness (`regression/`), pixel-identical vs 26.3
+- [x] Registry phase 1: `RendererRegistry`, all platforms + headless converted (Linux verified; other platforms not compile-tested)
+- [ ] Registry phase 2: `CONTEXT_SELF_MANAGED` + raw Vulkan test renderer
+- [ ] Remove old renderer includes from non-Linux platforms (needs cross-compile)
 - [ ] Baseline
