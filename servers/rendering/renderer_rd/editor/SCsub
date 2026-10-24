@@ -4,6 +4,7 @@ from misc.utility.scons_hints import *
 Import("env")
 
 # Editor tooling for the RD renderer: bakes its shaders at export time.
+env.add_source_files(env.renderer_rd_sources, "register_renderer_rd_editor.cpp")
 env.add_source_files(env.renderer_rd_sources, "shader_baker_export_plugin.cpp")
 
 if env["vulkan"]:

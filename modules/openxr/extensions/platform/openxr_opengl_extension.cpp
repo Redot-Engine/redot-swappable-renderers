@@ -58,6 +58,7 @@
 
 #include "../../openxr_util.h"
 
+#include "platform_gl.h"
 #include "servers/rendering/rendering_server.h"
 #include "servers/rendering/rendering_server_globals.h"
 
