@@ -31,6 +31,7 @@ void initialize_my_renderer_module(ModuleInitializationLevel p_level) {
 	info.name = "my_renderer";                 // --rendering-method my_renderer
 	info.drivers.push_back("vulkan");          // --rendering-driver vulkan
 	info.context_mode = RendererRegistry::CONTEXT_SELF_MANAGED;
+	info.features = 0; // Add RendererRegistry::FEATURE_* bits as you implement them.
 	info.make_current = [](const RendererRegistry::ContextInfo &) { MyRenderer::make_current(); };
 	RendererRegistry::register_renderer(info);
 }
@@ -61,7 +62,15 @@ Mapping from the Vulkan tutorial structure (`Unironic_engine`):
 | `FirstApp::run()` loop | Redot runs the loop. Draw and present in `end_frame(p_present)`. |
 | `FirstApp::drawFrame()` | Your `end_frame()`. Don't call `DisplayServer::swap_buffers()`; you present. |
 
-## 4. The RendererCompositor contract
+## 4. Declare features
+
+`info.features` tells the engine what you support; scene/editor/server code asks
+`RendererRegistry::has_feature(RendererRegistry::FEATURE_SSR)` etc. instead of
+checking renderer names. Start with `0` and set bits as you implement things:
+the user then gets "not available" warnings for everything else, instead of
+silent no-ops. Full list: `servers/rendering/renderer_registry.h`.
+
+## 5. The RendererCompositor contract
 
 Start by subclassing `RasterizerDummy` (as the example does): every subsystem
 returns a do-nothing implementation, so the engine runs while you only
@@ -86,7 +95,8 @@ Frame hooks: `initialize()`, `begin_frame(step)`, `blit_render_targets_to_screen
 - Single window. Multiple windows/editor sub-windows need per-window surfaces.
 - Features built on `RenderingDevice` are unavailable (RD lightmapper, GPU
   texture compression, `RenderingDevice` scripting API, OpenXR Vulkan path).
-- Editor/scene warnings compare renderer names as strings, so a new renderer
-  gets no feature warnings (phase 4: feature flags).
+- Feature warnings use `info.features`. Their texts still name the built-in
+  renderers (e.g. "only available when using the Forward+ renderer"), because
+  changing them would invalidate translations.
 - `--write-movie` and viewport screenshots read back through texture storage,
   so they show nothing until you implement it.
