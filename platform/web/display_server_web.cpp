@@ -39,6 +39,7 @@
 #include "core/config/project_settings.h"
 #include "core/object/callable_method_pointer.h"
 #include "servers/rendering/dummy/rasterizer_dummy.h"
+#include "servers/rendering/renderer_registry.h"
 
 #ifdef GLES3_ENABLED
 #include "drivers/gles3/rasterizer_gles3.h"
@@ -1142,17 +1143,26 @@ DisplayServerWeb::DisplayServerWeb(const String &p_rendering_driver, WindowMode 
 		if (!emscripten_webgl_enable_extension(webgl_ctx, "OVR_multiview2")) {
 			print_verbose("Failed to enable WebXR extension.");
 		}
-		RasterizerGLES3::make_current(false);
+		if (RendererRegistry::make_current({ p_rendering_driver, false }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 
 	} else {
 		OS::get_singleton()->alert(
 				"Your browser seems not to support WebGL 2.\n\n"
 				"If possible, consider updating your browser version and video card drivers.",
 				"Unable to initialize WebGL 2 video driver");
-		RasterizerDummy::make_current();
+		if (RendererRegistry::make_current("dummy", { "dummy" }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #else
-	RasterizerDummy::make_current();
+	if (RendererRegistry::make_current("dummy", { "dummy" }) != OK) {
+		r_error = ERR_UNAVAILABLE;
+		return;
+	}
 #endif
 
 	// JS Input interface (js/libs/library_godot_input.js)

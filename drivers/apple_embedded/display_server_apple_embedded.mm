@@ -43,6 +43,7 @@
 
 #include "core/config/project_settings.h"
 #include "core/io/file_access_pack.h"
+#include "servers/rendering/renderer_registry.h"
 
 #import <GameController/GameController.h>
 
@@ -151,7 +152,10 @@ DisplayServerAppleEmbedded::DisplayServerAppleEmbedded(const String &p_rendering
 		}
 		rendering_device->screen_create(MAIN_WINDOW_ID);
 
-		RendererCompositorRD::make_current();
+		if (RendererRegistry::make_current({ rendering_driver }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 		has_made_render_compositor_current = true;
 	}
 #endif
@@ -164,7 +168,10 @@ DisplayServerAppleEmbedded::DisplayServerAppleEmbedded(const String &p_rendering
 			ERR_FAIL_MSG("Failed to create iOS OpenGLES rendering layer.");
 		}
 
-		RasterizerGLES3::make_current(false);
+		if (RendererRegistry::make_current({ rendering_driver, false }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 		has_made_render_compositor_current = true;
 	}
 #endif

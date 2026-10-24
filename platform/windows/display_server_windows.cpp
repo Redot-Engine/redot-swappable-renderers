@@ -50,6 +50,7 @@
 #endif
 
 #include "servers/rendering/dummy/rasterizer_dummy.h"
+#include "servers/rendering/renderer_registry.h"
 
 #if defined(VULKAN_ENABLED)
 #include "rendering_context_driver_vulkan_windows.h"
@@ -6972,7 +6973,10 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 
 	// Init context and rendering device.
 	if (rendering_driver == "dummy") {
-		RasterizerDummy::make_current();
+		if (RendererRegistry::make_current("dummy", { "dummy" }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 
 #if defined(RD_ENABLED)
@@ -7150,10 +7154,16 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 	}
 
 	if (rendering_driver == "opengl3") {
-		RasterizerGLES3::make_current(true);
+		if (RendererRegistry::make_current({ rendering_driver, true }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 	if (rendering_driver == "opengl3_angle") {
-		RasterizerGLES3::make_current(false);
+		if (RendererRegistry::make_current({ rendering_driver, false }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #endif
 	String appname;
@@ -7262,7 +7272,10 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 		}
 		rendering_device->screen_create(MAIN_WINDOW_ID);
 
-		RendererCompositorRD::make_current();
+		if (RendererRegistry::make_current({ rendering_driver }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #endif
 

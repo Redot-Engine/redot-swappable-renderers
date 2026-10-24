@@ -39,7 +39,7 @@
  */
 
 #include "servers/display/display_server.h"
-#include "servers/rendering/dummy/rasterizer_dummy.h"
+#include "servers/rendering/renderer_registry.h"
 
 class DisplayServerHeadless : public DisplayServer {
 	GDSOFTCLASS(DisplayServerHeadless, DisplayServer);
@@ -54,8 +54,10 @@ private:
 	}
 
 	static DisplayServer *create_func(const String &p_rendering_driver, DisplayServer::WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
-		r_error = OK;
-		RasterizerDummy::make_current();
+		r_error = RendererRegistry::make_current("dummy", { "dummy" });
+		if (r_error != OK) {
+			return nullptr;
+		}
 		return memnew(DisplayServerHeadless());
 	}
 

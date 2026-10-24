@@ -65,6 +65,7 @@
 #include <AppKit/AppKit.h>
 
 #include "servers/rendering/dummy/rasterizer_dummy.h"
+#include "servers/rendering/renderer_registry.h"
 
 #if defined(GLES3_ENABLED)
 #include "drivers/gles3/rasterizer_gles3.h"
@@ -3954,15 +3955,24 @@ DisplayServerMacOS::DisplayServerMacOS(const String &p_rendering_driver, WindowM
 	force_process_and_drop_events();
 
 	if (rendering_driver == "dummy") {
-		RasterizerDummy::make_current();
+		if (RendererRegistry::make_current("dummy", { "dummy" }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 
 #if defined(GLES3_ENABLED)
 	if (rendering_driver == "opengl3") {
-		RasterizerGLES3::make_current(true);
+		if (RendererRegistry::make_current({ rendering_driver, true }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 	if (rendering_driver == "opengl3_angle") {
-		RasterizerGLES3::make_current(false);
+		if (RendererRegistry::make_current({ rendering_driver, false }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #endif
 #if defined(RD_ENABLED)
@@ -3971,7 +3981,10 @@ DisplayServerMacOS::DisplayServerMacOS(const String &p_rendering_driver, WindowM
 		rendering_device->initialize(rendering_context, MAIN_WINDOW_ID);
 		rendering_device->screen_create(MAIN_WINDOW_ID);
 
-		RendererCompositorRD::make_current();
+		if (RendererRegistry::make_current({ rendering_driver }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #endif
 

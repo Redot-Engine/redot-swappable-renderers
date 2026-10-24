@@ -38,6 +38,7 @@
 #include "tts_android.h"
 
 #include "core/config/project_settings.h"
+#include "servers/rendering/renderer_registry.h"
 
 #if defined(RD_ENABLED)
 #include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
@@ -795,13 +796,19 @@ DisplayServerAndroid::DisplayServerAndroid(const String &p_rendering_driver, Dis
 		}
 		rendering_device->screen_create(MAIN_WINDOW_ID);
 
-		RendererCompositorRD::make_current();
+		if (RendererRegistry::make_current({ rendering_driver }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #endif
 
 #if defined(GLES3_ENABLED)
 	if (rendering_driver == "opengl3") {
-		RasterizerGLES3::make_current(false);
+		if (RendererRegistry::make_current({ rendering_driver, false }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #endif
 

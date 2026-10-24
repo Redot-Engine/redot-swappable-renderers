@@ -57,6 +57,7 @@
 #import "core/config/project_settings.h"
 #import "core/debugger/engine_debugger.h"
 #import "core/io/marshalls.h"
+#import "servers/rendering/renderer_registry.h"
 
 DisplayServerEmbedded::DisplayServerEmbedded(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, Error &r_error) {
 	EmbeddedDebugger::initialize(this);
@@ -175,10 +176,16 @@ DisplayServerEmbedded::DisplayServerEmbedded(const String &p_rendering_driver, W
 
 #if defined(GLES3_ENABLED)
 	if (rendering_driver == "opengl3") {
-		RasterizerGLES3::make_current(true);
+		if (RendererRegistry::make_current({ rendering_driver, true }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 	if (rendering_driver == "opengl3_angle") {
-		RasterizerGLES3::make_current(false);
+		if (RendererRegistry::make_current({ rendering_driver, false }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #endif
 #if defined(RD_ENABLED)
@@ -187,7 +194,10 @@ DisplayServerEmbedded::DisplayServerEmbedded(const String &p_rendering_driver, W
 		rendering_device->initialize(rendering_context, MAIN_WINDOW_ID);
 		rendering_device->screen_create(MAIN_WINDOW_ID);
 
-		RendererCompositorRD::make_current();
+		if (RendererRegistry::make_current({ rendering_driver }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #endif
 
