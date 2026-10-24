@@ -753,6 +753,7 @@ Error Main::test_setup() {
 
 	/** INITIALIZE SERVERS **/
 	register_server_types();
+	register_renderer_types();
 #ifndef XR_DISABLED
 	XRServer::set_xr_mode(XRServer::XRMODE_OFF); // Skip in tests.
 #endif // XR_DISABLED
@@ -867,6 +868,7 @@ void Main::test_cleanup() {
 
 	GDExtensionManager::get_singleton()->deinitialize_extensions(GDExtension::INITIALIZATION_LEVEL_SERVERS);
 	uninitialize_modules(MODULE_INITIALIZATION_LEVEL_SERVERS);
+	unregister_renderer_types();
 	unregister_server_types();
 
 	EngineDebugger::deinitialize();
@@ -3182,6 +3184,7 @@ Error Main::setup2(bool p_show_boot_logo) {
 #endif // PHYSICS_2D_DISABLED
 
 	register_server_types();
+	register_renderer_types();
 	{
 		OS::get_singleton()->benchmark_begin_measure("Servers", "Modules and Extensions");
 
@@ -3311,6 +3314,7 @@ Error Main::setup2(bool p_show_boot_logo) {
 
 			GDExtensionManager::get_singleton()->deinitialize_extensions(GDExtension::INITIALIZATION_LEVEL_SERVERS);
 			uninitialize_modules(MODULE_INITIALIZATION_LEVEL_SERVERS);
+			unregister_renderer_types();
 			unregister_server_types();
 
 			if (input) {
@@ -5176,6 +5180,7 @@ void Main::cleanup(bool p_force) {
 
 	GDExtensionManager::get_singleton()->deinitialize_extensions(GDExtension::INITIALIZATION_LEVEL_SERVERS);
 	uninitialize_modules(MODULE_INITIALIZATION_LEVEL_SERVERS);
+	unregister_renderer_types();
 	unregister_server_types();
 
 	EngineDebugger::deinitialize();

@@ -41,15 +41,11 @@
 #define DEBUG_LOG_WAYLAND(...)
 #endif
 
-#include "servers/rendering/dummy/rasterizer_dummy.h"
-
-#ifdef VULKAN_ENABLED
-#include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
-#endif
+#include "servers/rendering/renderer_registry.h"
+#include "servers/rendering/rendering_server.h"
 
 #ifdef GLES3_ENABLED
 #include "detect_prime_egl.h"
-#include "drivers/gles3/rasterizer_gles3.h"
 #include "wayland/egl_manager_wayland.h"
 #include "wayland/egl_manager_wayland_gles.h"
 #endif
@@ -1992,7 +1988,10 @@ DisplayServerWayland::DisplayServerWayland(const String &p_rendering_driver, Win
 	String executable_name = OS::get_singleton()->get_executable_path().get_file();
 
 	if (rendering_driver == "dummy") {
-		RasterizerDummy::make_current();
+		if (RendererRegistry::make_current("dummy", { "dummy" }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 		driver_found = true;
 	}
 
@@ -2116,7 +2115,10 @@ DisplayServerWayland::DisplayServerWayland(const String &p_rendering_driver, Win
 					ERR_FAIL_MSG("Could not initialize OpenGL.");
 				}
 			} else {
-				RasterizerGLES3::make_current(true);
+				if (RendererRegistry::make_current({ rendering_driver, true }) != OK) {
+					r_error = ERR_UNAVAILABLE;
+					return;
+				}
 				driver_found = true;
 			}
 		}
@@ -2141,7 +2143,10 @@ DisplayServerWayland::DisplayServerWayland(const String &p_rendering_driver, Win
 				ERR_FAIL_MSG("Could not initialize OpenGL ES.");
 			}
 
-			RasterizerGLES3::make_current(false);
+			if (RendererRegistry::make_current({ rendering_driver, false }) != OK) {
+				r_error = ERR_UNAVAILABLE;
+				return;
+			}
 			driver_found = true;
 		}
 	}
@@ -2188,7 +2193,10 @@ DisplayServerWayland::DisplayServerWayland(const String &p_rendering_driver, Win
 		}
 		rendering_device->screen_create(MAIN_WINDOW_ID);
 
-		RendererCompositorRD::make_current();
+		if (RendererRegistry::make_current({ rendering_driver }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #endif // RD_ENABLED
 

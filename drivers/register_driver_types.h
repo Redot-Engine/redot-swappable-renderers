@@ -43,3 +43,7 @@ void unregister_core_driver_types();
 
 void register_driver_types();
 void unregister_driver_types();
+
+// Registers the built-in renderers with RendererRegistry. Must run before the DisplayServer is created.
+void register_renderer_types();
+void unregister_renderer_types();

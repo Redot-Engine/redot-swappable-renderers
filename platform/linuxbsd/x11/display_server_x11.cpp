@@ -45,15 +45,7 @@
 #include "drivers/png/png_driver_common.h"
 #include "main/main.h"
 
-#include "servers/rendering/dummy/rasterizer_dummy.h"
-
-#if defined(VULKAN_ENABLED)
-#include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
-#endif
-
-#if defined(GLES3_ENABLED)
-#include "drivers/gles3/rasterizer_gles3.h"
-#endif
+#include "servers/rendering/renderer_registry.h"
 
 #ifdef ACCESSKIT_ENABLED
 #include "drivers/accesskit/accessibility_driver_accesskit.h"
@@ -7198,7 +7190,10 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 	// Initialize context and rendering device.
 
 	if (rendering_driver == "dummy") {
-		RasterizerDummy::make_current();
+		if (RendererRegistry::make_current("dummy", { "dummy" }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 		driver_found = true;
 	}
 
@@ -7312,7 +7307,10 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 			}
 		} else {
 			driver_found = true;
-			RasterizerGLES3::make_current(true);
+			if (RendererRegistry::make_current({ rendering_driver, true }) != OK) {
+				r_error = ERR_UNAVAILABLE;
+				return;
+			}
 		}
 	}
 
@@ -7332,7 +7330,10 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 			ERR_FAIL_MSG("Could not initialize OpenGL ES.");
 		}
 		driver_found = true;
-		RasterizerGLES3::make_current(false);
+		if (RendererRegistry::make_current({ rendering_driver, false }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 
 #endif // GLES3_ENABLED
@@ -7377,7 +7378,10 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 		}
 		rendering_device->screen_create(MAIN_WINDOW_ID);
 
-		RendererCompositorRD::make_current();
+		if (RendererRegistry::make_current({ rendering_driver }) != OK) {
+			r_error = ERR_UNAVAILABLE;
+			return;
+		}
 	}
 #endif // RD_ENABLED
 

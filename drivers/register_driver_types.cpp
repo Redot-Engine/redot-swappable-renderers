@@ -41,6 +41,16 @@
 #include "drivers/png/image_frames_loader_png.h"
 #include "drivers/png/image_loader_png.h"
 #include "drivers/png/resource_saver_png.h"
+#include "servers/rendering/dummy/rasterizer_dummy.h"
+#include "servers/rendering/renderer_registry.h"
+
+#ifdef GLES3_ENABLED
+#include "drivers/gles3/rasterizer_gles3.h"
+#endif // GLES3_ENABLED
+
+#ifdef RD_ENABLED
+#include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
+#endif // RD_ENABLED
 
 static Ref<ImageLoaderPNG> image_loader_png;
 static Ref<ImageFramesLoaderPNG> image_frames_loader_png;
@@ -72,4 +82,69 @@ void register_driver_types() {
 }
 
 void unregister_driver_types() {
+}
+
+static void _make_current_dummy(const RendererRegistry::ContextInfo &p_context) {
+	RasterizerDummy::make_current();
+}
+
+#ifdef GLES3_ENABLED
+static void _make_current_gles3(const RendererRegistry::ContextInfo &p_context) {
+	RasterizerGLES3::make_current(p_context.gles_over_gl);
+}
+#endif // GLES3_ENABLED
+
+#ifdef RD_ENABLED
+static void _make_current_rd(const RendererRegistry::ContextInfo &p_context) {
+	// RendererCompositorRD picks Forward+ or Mobile from the current rendering method.
+	RendererCompositorRD::make_current();
+}
+#endif // RD_ENABLED
+
+void register_renderer_types() {
+	RendererRegistry::RendererInfo dummy;
+	dummy.name = "dummy";
+	dummy.drivers.push_back("dummy");
+	dummy.context_mode = RendererRegistry::CONTEXT_NONE;
+	dummy.make_current = _make_current_dummy;
+	RendererRegistry::register_renderer(dummy);
+
+#ifdef GLES3_ENABLED
+	RendererRegistry::RendererInfo gl_compatibility;
+	gl_compatibility.name = "gl_compatibility";
+	gl_compatibility.drivers.push_back("opengl3");
+	gl_compatibility.drivers.push_back("opengl3_es");
+	gl_compatibility.drivers.push_back("opengl3_angle");
+	gl_compatibility.context_mode = RendererRegistry::CONTEXT_GL;
+	gl_compatibility.make_current = _make_current_gles3;
+	RendererRegistry::register_renderer(gl_compatibility);
+#endif // GLES3_ENABLED
+
+#ifdef RD_ENABLED
+	Vector<String> rd_drivers;
+#ifdef VULKAN_ENABLED
+	rd_drivers.push_back("vulkan");
+#endif // VULKAN_ENABLED
+#ifdef D3D12_ENABLED
+	rd_drivers.push_back("d3d12");
+#endif // D3D12_ENABLED
+#ifdef METAL_ENABLED
+	rd_drivers.push_back("metal");
+#endif // METAL_ENABLED
+
+	RendererRegistry::RendererInfo forward_plus;
+	forward_plus.name = "forward_plus";
+	forward_plus.drivers = rd_drivers;
+	forward_plus.context_mode = RendererRegistry::CONTEXT_RD;
+	forward_plus.make_current = _make_current_rd;
+	RendererRegistry::register_renderer(forward_plus);
+
+	RendererRegistry::RendererInfo mobile = forward_plus;
+	mobile.name = "mobile";
+	RendererRegistry::register_renderer(mobile);
+#endif // RD_ENABLED
+}
+
+void unregister_renderer_types() {
+	RendererRegistry::clear();
 }
