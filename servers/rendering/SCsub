@@ -6,7 +6,8 @@ Import("env")
 env.add_source_files(env.servers_sources, "*.cpp")
 
 SConscript("dummy/SCsub")
-SConscript("renderer_rd/SCsub")
+if env["builtin_renderer_rd"]:
+    SConscript("renderer_rd/SCsub")
 # Used by RenderingDevice (rendering_device_commons.cpp).
 SConscript("spirv-reflect/SCsub")
 SConscript("storage/SCsub")

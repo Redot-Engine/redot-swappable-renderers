@@ -3,9 +3,15 @@ from misc.utility.scons_hints import *
 
 Import("env")
 
-env.add_source_files(env.drivers_sources, "*.cpp")
+# The Compatibility renderer is its own library, referenced only by the renderer registration
+# in drivers/register_driver_types.cpp (see drivers/SCsub for link order).
+env.renderer_gles3_sources = []
+
+env.add_source_files(env.renderer_gles3_sources, "*.cpp")
 
 SConscript("shaders/SCsub")
 SConscript("storage/SCsub")
 SConscript("effects/SCsub")
 SConscript("environment/SCsub")
+
+env.renderer_gles3_lib = env.add_library("renderer_gles3", env.renderer_gles3_sources)

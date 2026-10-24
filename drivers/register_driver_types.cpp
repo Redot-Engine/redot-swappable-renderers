@@ -44,13 +44,17 @@
 #include "servers/rendering/dummy/rasterizer_dummy.h"
 #include "servers/rendering/renderer_registry.h"
 
-#ifdef GLES3_ENABLED
-#include "drivers/gles3/rasterizer_gles3.h"
-#endif // GLES3_ENABLED
+// Built-in renderers. Each can be left out of the build (builtin_renderer_rd=no,
+// builtin_renderer_gles3=no); this file is the only engine code that refers to them.
 
+#if defined(GLES3_ENABLED) && defined(BUILTIN_RENDERER_GLES3_ENABLED)
+#include "drivers/gles3/rasterizer_gles3.h"
+#endif
+
+#ifdef BUILTIN_RENDERER_RD_ENABLED
 #ifdef RD_ENABLED
 #include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
-#endif // RD_ENABLED
+#endif
 
 // The RD renderer's scriptable classes are compiled and registered even without an RD driver,
 // so the class list (and extension API) doesn't depend on which drivers are enabled.
@@ -63,6 +67,7 @@
 #ifdef TOOLS_ENABLED
 #include "servers/rendering/renderer_rd/editor/register_renderer_rd_editor.h"
 #endif
+#endif // BUILTIN_RENDERER_RD_ENABLED
 
 static Ref<ImageLoaderPNG> image_loader_png;
 static Ref<ImageFramesLoaderPNG> image_frames_loader_png;
@@ -96,6 +101,7 @@ void register_driver_types() {
 void unregister_driver_types() {
 }
 
+#ifdef BUILTIN_RENDERER_RD_ENABLED
 static void _register_rd_classes() {
 	GDREGISTER_CLASS(RenderDataRD);
 	GDREGISTER_CLASS(RenderSceneDataRD);
@@ -103,31 +109,34 @@ static void _register_rd_classes() {
 	GDREGISTER_CLASS(FramebufferCacheRD);
 	GDREGISTER_CLASS(UniformSetCacheRD);
 }
+#endif // BUILTIN_RENDERER_RD_ENABLED
 
 static void _make_current_dummy(const RendererRegistry::ContextInfo &p_context) {
 	RasterizerDummy::make_current();
 }
 
-#ifdef GLES3_ENABLED
+#if defined(GLES3_ENABLED) && defined(BUILTIN_RENDERER_GLES3_ENABLED)
 static void _make_current_gles3(const RendererRegistry::ContextInfo &p_context) {
 	RasterizerGLES3::make_current(p_context.gles_over_gl);
 }
-#endif // GLES3_ENABLED
+#endif
 
-#ifdef RD_ENABLED
+#if defined(RD_ENABLED) && defined(BUILTIN_RENDERER_RD_ENABLED)
 static void _make_current_rd(const RendererRegistry::ContextInfo &p_context) {
 	// RendererCompositorRD picks Forward+ or Mobile from the current rendering method.
 	RendererCompositorRD::make_current();
 }
-#endif // RD_ENABLED
+#endif
 
 void register_renderer_types() {
+#ifdef BUILTIN_RENDERER_RD_ENABLED
 	RendererRegistry::add_class_registration(_register_rd_classes);
 #ifdef TOOLS_ENABLED
 	RendererRegistry::add_editor_plugin_registration(register_renderer_rd_editor_plugins);
 #endif
+#endif // BUILTIN_RENDERER_RD_ENABLED
 
-#ifdef RD_ENABLED
+#if defined(RD_ENABLED) && defined(BUILTIN_RENDERER_RD_ENABLED)
 	Vector<String> rd_drivers;
 #ifdef VULKAN_ENABLED
 	rd_drivers.push_back("vulkan");
@@ -163,9 +172,9 @@ void register_renderer_types() {
 			RendererRegistry::FEATURE_SCALING_3D_ADVANCED | RendererRegistry::FEATURE_SCREEN_SPACE_AA |
 			RendererRegistry::FEATURE_SHADER_DESKTOP_BUILTINS;
 	RendererRegistry::register_renderer(mobile);
-#endif // RD_ENABLED
+#endif
 
-#ifdef GLES3_ENABLED
+#if defined(GLES3_ENABLED) && defined(BUILTIN_RENDERER_GLES3_ENABLED)
 	RendererRegistry::RendererInfo gl_compatibility;
 	gl_compatibility.name = "gl_compatibility";
 	gl_compatibility.drivers.push_back("opengl3");
@@ -175,7 +184,7 @@ void register_renderer_types() {
 	gl_compatibility.make_current = _make_current_gles3;
 	gl_compatibility.features = 0; // GLSL ES 3.0 baseline; see RendererRegistry::Feature.
 	RendererRegistry::register_renderer(gl_compatibility);
-#endif // GLES3_ENABLED
+#endif
 
 	RendererRegistry::RendererInfo dummy;
 	dummy.name = "dummy";

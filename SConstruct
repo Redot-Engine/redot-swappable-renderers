@@ -196,6 +196,8 @@ opts.Add(BoolVariable("brotli", "Enable Brotli for decompression and WOFF2 fonts
 opts.Add(BoolVariable("xaudio2", "Enable the XAudio2 audio driver on supported platforms", False))
 opts.Add(BoolVariable("vulkan", "Enable the Vulkan rendering driver", True))
 opts.Add(BoolVariable("opengl3", "Enable the OpenGL/GLES3 rendering driver", True))
+opts.Add(BoolVariable("builtin_renderer_rd", "Build the built-in Forward+ and Mobile renderers (used with RenderingDevice drivers)", True))
+opts.Add(BoolVariable("builtin_renderer_gles3", "Build the built-in Compatibility renderer (used with the opengl3 driver)", True))
 opts.Add(BoolVariable("d3d12", "Enable the Direct3D 12 rendering driver on supported platforms", False))
 opts.Add(BoolVariable("metal", "Enable the Metal rendering driver on supported platforms (Apple arm64 only)", False))
 opts.Add(BoolVariable("use_volk", "Use the volk library to load the Vulkan loader dynamically", True))
@@ -995,6 +997,10 @@ if env["disable_navigation_3d"]:
     env.Append(CPPDEFINES=["NAVIGATION_3D_DISABLED"])
 if env["disable_xr"]:
     env.Append(CPPDEFINES=["XR_DISABLED"])
+if env["builtin_renderer_rd"]:
+    env.Append(CPPDEFINES=["BUILTIN_RENDERER_RD_ENABLED"])
+if env["builtin_renderer_gles3"] and env["opengl3"]:
+    env.Append(CPPDEFINES=["BUILTIN_RENDERER_GLES3_ENABLED"])
 if env["minizip"]:
     env.Append(CPPDEFINES=["MINIZIP_ENABLED"])
 if env["brotli"]:
