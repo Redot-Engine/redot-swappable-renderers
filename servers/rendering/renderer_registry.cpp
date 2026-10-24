@@ -44,6 +44,7 @@
 LocalVector<RendererRegistry::RendererInfo> RendererRegistry::renderers;
 const RendererRegistry::RendererInfo *RendererRegistry::current = nullptr;
 LocalVector<void (*)()> RendererRegistry::class_registrations;
+LocalVector<void (*)()> RendererRegistry::editor_plugin_registrations;
 
 void RendererRegistry::register_renderer(const RendererInfo &p_info) {
 	ERR_FAIL_COND_MSG(p_info.name.is_empty(), "Renderer name can't be empty.");
@@ -63,9 +64,21 @@ void RendererRegistry::register_classes() {
 	}
 }
 
+void RendererRegistry::add_editor_plugin_registration(void (*p_func)()) {
+	ERR_FAIL_NULL(p_func);
+	editor_plugin_registrations.push_back(p_func);
+}
+
+void RendererRegistry::register_editor_plugins() {
+	for (void (*func)() : editor_plugin_registrations) {
+		func();
+	}
+}
+
 void RendererRegistry::clear() {
 	renderers.clear();
 	class_registrations.clear();
+	editor_plugin_registrations.clear();
 	current = nullptr;
 }
 

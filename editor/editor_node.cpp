@@ -83,6 +83,7 @@
 #include "servers/display/display_server.h"
 #include "servers/navigation_2d/navigation_server_2d.h"
 #include "servers/navigation_3d/navigation_server_3d.h"
+#include "servers/rendering/renderer_registry.h"
 #include "servers/rendering/rendering_server.h"
 
 #include "editor/animation/animation_player_editor_plugin.h"
@@ -112,7 +113,6 @@
 #include "editor/export/project_export.h"
 #include "editor/export/project_zip_packer.h"
 #include "editor/export/register_exporters.h"
-#include "editor/export/shader_baker_export_plugin.h"
 #include "editor/file_system/dependency_editor.h"
 #include "editor/file_system/editor_paths.h"
 #include "editor/file_system/uid_viewer.h"
@@ -181,18 +181,6 @@
 #include "editor/translations/editor_translation_parser.h"
 #include "editor/translations/packed_scene_translation_parser_plugin.h"
 #include "editor/version_control/version_control_editor_plugin.h"
-
-#ifdef VULKAN_ENABLED
-#include "editor/shader/shader_baker/shader_baker_export_plugin_platform_vulkan.h"
-#endif
-
-#ifdef D3D12_ENABLED
-#include "editor/shader/shader_baker/shader_baker_export_plugin_platform_d3d12.h"
-#endif
-
-#ifdef METAL_ENABLED
-#include "editor/shader/shader_baker/shader_baker_export_plugin_platform_metal.h"
-#endif
 
 #include "modules/modules_enabled.gen.h" // For gdscript, mono.
 
@@ -8727,28 +8715,8 @@ EditorNode::EditorNode() {
 
 	EditorExport::get_singleton()->add_export_plugin(dedicated_server_export_plugin);
 
-	Ref<ShaderBakerExportPlugin> shader_baker_export_plugin;
-	shader_baker_export_plugin.instantiate();
-
-#ifdef VULKAN_ENABLED
-	Ref<ShaderBakerExportPluginPlatformVulkan> shader_baker_export_plugin_platform_vulkan;
-	shader_baker_export_plugin_platform_vulkan.instantiate();
-	shader_baker_export_plugin->add_platform(shader_baker_export_plugin_platform_vulkan);
-#endif
-
-#ifdef D3D12_ENABLED
-	Ref<ShaderBakerExportPluginPlatformD3D12> shader_baker_export_plugin_platform_d3d12;
-	shader_baker_export_plugin_platform_d3d12.instantiate();
-	shader_baker_export_plugin->add_platform(shader_baker_export_plugin_platform_d3d12);
-#endif
-
-#ifdef METAL_ENABLED
-	Ref<ShaderBakerExportPluginPlatformMetal> shader_baker_export_plugin_platform_metal;
-	shader_baker_export_plugin_platform_metal.instantiate();
-	shader_baker_export_plugin->add_platform(shader_baker_export_plugin_platform_metal);
-#endif
-
-	EditorExport::get_singleton()->add_export_plugin(shader_baker_export_plugin);
+	// Renderer-specific export plugins (e.g. the RD shader baker).
+	RendererRegistry::register_editor_plugins();
 
 	Ref<PackedSceneEditorTranslationParserPlugin> packed_scene_translation_parser_plugin;
 	packed_scene_translation_parser_plugin.instantiate();

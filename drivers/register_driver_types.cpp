@@ -60,6 +60,20 @@
 #include "servers/rendering/renderer_rd/storage_rd/render_scene_data_rd.h"
 #include "servers/rendering/renderer_rd/uniform_set_cache_rd.h"
 
+#ifdef TOOLS_ENABLED
+#include "editor/export/editor_export.h"
+#include "servers/rendering/renderer_rd/editor/shader_baker_export_plugin.h"
+#ifdef VULKAN_ENABLED
+#include "servers/rendering/renderer_rd/editor/shader_baker_export_plugin_platform_vulkan.h"
+#endif
+#ifdef D3D12_ENABLED
+#include "servers/rendering/renderer_rd/editor/shader_baker_export_plugin_platform_d3d12.h"
+#endif
+#ifdef METAL_ENABLED
+#include "servers/rendering/renderer_rd/editor/shader_baker_export_plugin_platform_metal.h"
+#endif
+#endif // TOOLS_ENABLED
+
 static Ref<ImageLoaderPNG> image_loader_png;
 static Ref<ImageFramesLoaderPNG> image_frames_loader_png;
 static Ref<ResourceSaverPNG> resource_saver_png;
@@ -100,6 +114,33 @@ static void _register_rd_classes() {
 	GDREGISTER_CLASS(UniformSetCacheRD);
 }
 
+#ifdef TOOLS_ENABLED
+static void _register_rd_editor_plugins() {
+	Ref<ShaderBakerExportPlugin> shader_baker_export_plugin;
+	shader_baker_export_plugin.instantiate();
+
+#ifdef VULKAN_ENABLED
+	Ref<ShaderBakerExportPluginPlatformVulkan> shader_baker_export_plugin_platform_vulkan;
+	shader_baker_export_plugin_platform_vulkan.instantiate();
+	shader_baker_export_plugin->add_platform(shader_baker_export_plugin_platform_vulkan);
+#endif
+
+#ifdef D3D12_ENABLED
+	Ref<ShaderBakerExportPluginPlatformD3D12> shader_baker_export_plugin_platform_d3d12;
+	shader_baker_export_plugin_platform_d3d12.instantiate();
+	shader_baker_export_plugin->add_platform(shader_baker_export_plugin_platform_d3d12);
+#endif
+
+#ifdef METAL_ENABLED
+	Ref<ShaderBakerExportPluginPlatformMetal> shader_baker_export_plugin_platform_metal;
+	shader_baker_export_plugin_platform_metal.instantiate();
+	shader_baker_export_plugin->add_platform(shader_baker_export_plugin_platform_metal);
+#endif
+
+	EditorExport::get_singleton()->add_export_plugin(shader_baker_export_plugin);
+}
+#endif // TOOLS_ENABLED
+
 static void _make_current_dummy(const RendererRegistry::ContextInfo &p_context) {
 	RasterizerDummy::make_current();
 }
@@ -119,6 +160,9 @@ static void _make_current_rd(const RendererRegistry::ContextInfo &p_context) {
 
 void register_renderer_types() {
 	RendererRegistry::add_class_registration(_register_rd_classes);
+#ifdef TOOLS_ENABLED
+	RendererRegistry::add_editor_plugin_registration(_register_rd_editor_plugins);
+#endif
 
 #ifdef RD_ENABLED
 	Vector<String> rd_drivers;

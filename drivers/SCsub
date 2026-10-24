@@ -70,5 +70,9 @@ SConscript("png/SCsub")
 
 env.add_source_files(env.drivers_sources, "*.cpp")
 
+# Built-in renderer libraries are only referenced from here (register_driver_types.cpp),
+# so they're linked after the drivers library.
+env.Prepend(LIBS=[env.renderer_rd_lib])
+
 lib = env.add_library("drivers", env.drivers_sources)
 env.Prepend(LIBS=[lib])

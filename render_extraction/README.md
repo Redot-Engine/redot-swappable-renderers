@@ -32,7 +32,7 @@ swappable renderer interface.
 - [ ] Self-managed support on Wayland / Windows
 - [x] raw_vulkan_test clean under validation layer (errors, warnings, best practices, sync validation); only an informational SUBOPTIMAL on resize, which it handles
 - [x] Feature flags replace method-name checks in scene/editor/servers (33 sites); probe-verified identical
-- [~] Phase 5 extraction: boundary checker `tools/check_renderer_boundary.py` (36 -> 21 violations so far; dummy reclassified as renderer API)
+- [~] Phase 5 extraction: boundary checker `tools/check_renderer_boundary.py` (36 -> 13; dummy reclassified as renderer API). `renderer_rd` is its own static library, linked only from the renderer registration
 - [ ] Editor renderer picker (project dialog, editor_node, editor settings, build profile) from registry
 - [ ] Remaining name checks: export plugins (built-in drivers) and RD internals - intentionally left
 - [ ] Remove old renderer includes from non-Linux platforms (needs cross-compile)

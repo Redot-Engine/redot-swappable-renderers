@@ -121,6 +121,7 @@ private:
 	static LocalVector<RendererInfo> renderers;
 	static const RendererInfo *current;
 	static LocalVector<void (*)()> class_registrations;
+	static LocalVector<void (*)()> editor_plugin_registrations;
 
 public:
 	static void register_renderer(const RendererInfo &p_info);
@@ -128,6 +129,10 @@ public:
 	/// Called from register_server_types(), after the server base classes exist.
 	static void add_class_registration(void (*p_func)());
 	static void register_classes();
+	/// Adds a function that registers a renderer's editor tooling (e.g. export plugins).
+	/// Called by the editor once its export system exists. Only used in editor builds.
+	static void add_editor_plugin_registration(void (*p_func)());
+	static void register_editor_plugins();
 	static void clear();
 
 	static const RendererInfo *find(const String &p_name);

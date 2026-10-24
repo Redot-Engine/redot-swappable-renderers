@@ -38,7 +38,7 @@
  * [Add any documentation that applies to the entire file here!]
  */
 
-#include "editor/export/shader_baker_export_plugin.h"
+#include "servers/rendering/renderer_rd/editor/shader_baker_export_plugin.h"
 
 class ShaderBakerExportPluginPlatformD3D12 : public ShaderBakerExportPluginPlatform {
 	GDCLASS(ShaderBakerExportPluginPlatformD3D12, ShaderBakerExportPluginPlatform);

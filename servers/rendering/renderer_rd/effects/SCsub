@@ -62,7 +62,7 @@ env_effects.Append(CPPDEFINES=["FFX_GCC"])
 env_thirdparty = env_effects.Clone()
 env_thirdparty.disable_warnings()
 env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
-env.servers_sources += thirdparty_obj
+env.renderer_rd_sources += thirdparty_obj
 
 # Redot source files
 
@@ -71,7 +71,7 @@ module_obj = []
 env_effects.add_source_files(module_obj, "*.cpp")
 if env["metal"]:
     env_effects.add_source_files(module_obj, "metal_fx.mm")
-env.servers_sources += module_obj
+env.renderer_rd_sources += module_obj
 
 # Needed to force rebuilding the module files when the thirdparty library is updated.
 env.Depends(module_obj, thirdparty_obj)

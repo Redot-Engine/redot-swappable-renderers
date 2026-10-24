@@ -3,12 +3,20 @@ from misc.utility.scons_hints import *
 
 Import("env")
 
-env.add_source_files(env.servers_sources, "*.cpp")
+# The RD renderer (Forward+ and Mobile) is its own library. Only the renderer registration in
+# drivers/register_driver_types.cpp refers to it, so it's linked right after the drivers library
+# (see drivers/SCsub).
+env.renderer_rd_sources = []
+
+env.add_source_files(env.renderer_rd_sources, "*.cpp")
 
 SConscript("effects/SCsub")
 SConscript("environment/SCsub")
 SConscript("forward_clustered/SCsub")
 SConscript("forward_mobile/SCsub")
 SConscript("shaders/SCsub")
-SConscript("spirv-reflect/SCsub")
 SConscript("storage_rd/SCsub")
+if env.editor_build:
+    SConscript("editor/SCsub")
+
+env.renderer_rd_lib = env.add_library("renderer_rd", env.renderer_rd_sources)
