@@ -43,6 +43,7 @@
 
 LocalVector<RendererRegistry::RendererInfo> RendererRegistry::renderers;
 const RendererRegistry::RendererInfo *RendererRegistry::current = nullptr;
+LocalVector<void (*)()> RendererRegistry::class_registrations;
 
 void RendererRegistry::register_renderer(const RendererInfo &p_info) {
 	ERR_FAIL_COND_MSG(p_info.name.is_empty(), "Renderer name can't be empty.");
@@ -51,8 +52,20 @@ void RendererRegistry::register_renderer(const RendererInfo &p_info) {
 	renderers.push_back(p_info);
 }
 
+void RendererRegistry::add_class_registration(void (*p_func)()) {
+	ERR_FAIL_NULL(p_func);
+	class_registrations.push_back(p_func);
+}
+
+void RendererRegistry::register_classes() {
+	for (void (*func)() : class_registrations) {
+		func();
+	}
+}
+
 void RendererRegistry::clear() {
 	renderers.clear();
+	class_registrations.clear();
 	current = nullptr;
 }
 

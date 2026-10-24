@@ -120,9 +120,14 @@ public:
 private:
 	static LocalVector<RendererInfo> renderers;
 	static const RendererInfo *current;
+	static LocalVector<void (*)()> class_registrations;
 
 public:
 	static void register_renderer(const RendererInfo &p_info);
+	/// Adds a function that registers a renderer's scriptable classes with ClassDB.
+	/// Called from register_server_types(), after the server base classes exist.
+	static void add_class_registration(void (*p_func)());
+	static void register_classes();
 	static void clear();
 
 	static const RendererInfo *find(const String &p_name);

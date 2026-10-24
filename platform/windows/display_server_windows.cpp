@@ -49,7 +49,6 @@
 #include "drivers/sdl/joypad_sdl.h"
 #endif
 
-#include "servers/rendering/dummy/rasterizer_dummy.h"
 #include "servers/rendering/renderer_registry.h"
 
 #if defined(VULKAN_ENABLED)
@@ -57,9 +56,6 @@
 #endif
 #if defined(D3D12_ENABLED)
 #include "drivers/d3d12/rendering_context_driver_d3d12.h"
-#endif
-#if defined(GLES3_ENABLED)
-#include "drivers/gles3/rasterizer_gles3.h"
 #endif
 
 #if defined(ACCESSKIT_ENABLED)

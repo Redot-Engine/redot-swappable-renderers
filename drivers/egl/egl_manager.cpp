@@ -40,7 +40,6 @@
 
 #include "core/crypto/crypto_core.h"
 #include "core/io/dir_access.h"
-#include "drivers/gles3/rasterizer_gles3.h"
 
 #ifdef EGL_ENABLED
 
@@ -386,7 +385,7 @@ void EGLManager::window_make_current(DisplayServer::WindowID p_window_id) {
 	eglMakeCurrent(current_display.egl_display, current_window->egl_surface, current_window->egl_surface, current_display.egl_context);
 
 #ifdef WINDOWS_ENABLED
-	RasterizerGLES3::set_screen_flipped_y(glwindow.flipped_y);
+	current_window_flipped_y = glwindow.flipped_y;
 #endif
 }
 
@@ -532,6 +531,10 @@ Error EGLManager::initialize(void *p_native_display) {
 
 	return OK;
 }
+
+#ifdef WINDOWS_ENABLED
+bool EGLManager::current_window_flipped_y = false;
+#endif
 
 EGLManager::EGLManager() {
 }

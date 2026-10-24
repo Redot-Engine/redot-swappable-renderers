@@ -45,7 +45,6 @@
 #include "servers/audio/audio_server.h"
 #include "servers/display/display_server.h"
 #include "servers/rendering/renderer_compositor.h"
-#include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
 #include "servers/rendering/rendering_server.h"
 
 #ifdef XAUDIO2_ENABLED

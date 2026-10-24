@@ -96,8 +96,17 @@
 #define strcpy strcpy_s
 #endif
 
-#ifdef WINDOWS_ENABLED
-bool RasterizerGLES3::screen_flipped_y = false;
+#if defined(WINDOWS_ENABLED) && defined(EGL_ENABLED)
+#include "drivers/egl/egl_manager.h"
+
+// ANGLE may present a vertically flipped surface; the EGL context layer tracks it per window.
+static bool _is_screen_flipped_y() {
+	return EGLManager::is_current_window_flipped_y();
+}
+#elif defined(WINDOWS_ENABLED)
+static bool _is_screen_flipped_y() {
+	return false;
+}
 #endif
 
 bool RasterizerGLES3::gles_over_gl = true;
@@ -413,7 +422,7 @@ void RasterizerGLES3::_blit_render_target_to_screen(DisplayServer::WindowID p_sc
 	}
 
 #ifdef WINDOWS_ENABLED
-	if (screen_flipped_y) {
+	if (_is_screen_flipped_y()) {
 		flip_y = !flip_y;
 	}
 #endif
@@ -499,7 +508,7 @@ void RasterizerGLES3::set_boot_image(const Ref<Image> &p_image, const Color &p_c
 	}
 
 #ifdef WINDOWS_ENABLED
-	if (!screen_flipped_y)
+	if (!_is_screen_flipped_y())
 #endif
 	{
 		// Flip Y.
@@ -540,7 +549,7 @@ void RasterizerGLES3::set_boot_image(const Ref<Image> &p_image, const Color &p_c
 			screenrect2 = DisplayServer::calculate_boot_image_rect(win_size, imgrect);
 		}
 #ifdef WINDOWS_ENABLED
-		if (!screen_flipped_y)
+		if (!_is_screen_flipped_y())
 #endif
 		{
 			screenrect2.position.y = win_size.y - screenrect2.position.y;

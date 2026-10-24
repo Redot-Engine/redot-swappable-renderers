@@ -52,6 +52,14 @@
 #include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
 #endif // RD_ENABLED
 
+// The RD renderer's scriptable classes are compiled and registered even without an RD driver,
+// so the class list (and extension API) doesn't depend on which drivers are enabled.
+#include "servers/rendering/renderer_rd/framebuffer_cache_rd.h"
+#include "servers/rendering/renderer_rd/storage_rd/render_data_rd.h"
+#include "servers/rendering/renderer_rd/storage_rd/render_scene_buffers_rd.h"
+#include "servers/rendering/renderer_rd/storage_rd/render_scene_data_rd.h"
+#include "servers/rendering/renderer_rd/uniform_set_cache_rd.h"
+
 static Ref<ImageLoaderPNG> image_loader_png;
 static Ref<ImageFramesLoaderPNG> image_frames_loader_png;
 static Ref<ResourceSaverPNG> resource_saver_png;
@@ -84,6 +92,14 @@ void register_driver_types() {
 void unregister_driver_types() {
 }
 
+static void _register_rd_classes() {
+	GDREGISTER_CLASS(RenderDataRD);
+	GDREGISTER_CLASS(RenderSceneDataRD);
+	GDREGISTER_CLASS(RenderSceneBuffersRD);
+	GDREGISTER_CLASS(FramebufferCacheRD);
+	GDREGISTER_CLASS(UniformSetCacheRD);
+}
+
 static void _make_current_dummy(const RendererRegistry::ContextInfo &p_context) {
 	RasterizerDummy::make_current();
 }
@@ -102,6 +118,8 @@ static void _make_current_rd(const RendererRegistry::ContextInfo &p_context) {
 #endif // RD_ENABLED
 
 void register_renderer_types() {
+	RendererRegistry::add_class_registration(_register_rd_classes);
+
 #ifdef RD_ENABLED
 	Vector<String> rd_drivers;
 #ifdef VULKAN_ENABLED

@@ -98,7 +98,17 @@ private:
 	int _get_gldisplay_id(void *p_display);
 	Error _gldisplay_create_context(GLDisplay &p_gldisplay);
 
+#ifdef WINDOWS_ENABLED
+	static bool current_window_flipped_y;
+#endif
+
 public:
+#ifdef WINDOWS_ENABLED
+	/// Whether the current window's surface is vertically flipped (ANGLE surface orientation).
+	/// Read by the GL renderer when blitting to the screen.
+	static bool is_current_window_flipped_y() { return current_window_flipped_y; }
+#endif
+
 	int display_get_native_visual_id(void *p_display);
 
 	Error open_display(void *p_display);
